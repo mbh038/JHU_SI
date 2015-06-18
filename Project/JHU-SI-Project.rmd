@@ -11,11 +11,7 @@ output: html_document
 In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of 
 exponential distribution is 1/lambda and the standard deviation is also 1/lambda.
 
-lambda<-0.2
-means<-apply(matrix(rexp(40000,lambda),1000, 40), 1, mean)
-hist(means)
-mean(means)
-sd(means)
+
 
 Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
 
@@ -37,6 +33,14 @@ In a few (2-3) sentences explain what is going to be reported on.
 
 ## Simulations
 
+```{r simulation}
+lambda<-0.2
+means<-apply(matrix(rexp(40000,lambda),1000, 40), 1, mean)
+hist(means)
+mean(means)
+sd(means)
+```
+
 Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes.
 
 ## Sample Mean versus Theoretical Mean
@@ -49,3 +53,20 @@ Include figures (output from R) with titles. Highlight the variances you are com
 ##Distribution
 
 Via figures and text, explain how one can tell the distribution is approximately normal.
+
+
+##Play
+```{r q4 LIB 8 exercises}
+data(mtcars)
+t.test(mtcars$mpg)
+```
+```{r q5 LIB 8 exercises}
+qt(0.975,8)*1/3
+```
+```{r q7 LIB 8 exercises}
+library(dplyr)
+mt4<-filter(mtcars,cyl==4)
+mt6<-filter(mtcars,cyl==6)
+t.test(mt4$mpg,mt6$mpg,pairs=FALSE,var.equal=TRUE)
+#The interval is above zero, suggesting 4 is better than 6 in the terms of MPG.
+```
