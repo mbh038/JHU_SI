@@ -2,7 +2,7 @@
 title: "JHU_SI Project"
 author: "mbh"
 date: "Thursday, June 04, 2015"
-output: html_document
+output: pdf_document
 ---
 
 
@@ -25,7 +25,9 @@ In point 3, focus on the difference between the distribution of a large collecti
 
 ## Title
 
-(give an appropriate title) and Author Name
+Investigation of the distribution of the mean of samples (n=40) of exponential distirbutions
+
+Author : Michael Hunt
 
 ## Overview
 
@@ -43,7 +45,59 @@ sd(means)
 
 Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes.
 
-## Sample Mean versus Theoretical Mean
+### Sample Mean versus Theoretical Mean
+
+```{r Sample mean}
+lambda<-0.2
+means<-apply(matrix(rexp(40000,lambda),1000, 40), 1, mean)
+hist(means)
+mean(means)
+sd(means)
+```
+The theoretical expected value, or mean of the exponential distribution $f(x)=\lambda e^{(-\lambda/x)}$ is given by
+
+$\mu=\int_0^\infty{ xf(x)dx}=\int_0^\infty{ x\lambda e^{(-\lambda/x)}dx}=\frac{1}{\lambda}$
+
+Hence for $\lambda=0.2, \mu=5$.
+
+The theoretical mean of a sample of $n$ exponential distributions will also tend towards the same mean, as $n -> \infty$ since it is a **consistent** estimator of the population mean. This is the Law of Large Numbers.
+
+The variance of the exponential distribution is given by
+
+$var(f(x))=
+```{r caffo ggplot unnormalised}
+library(ggplot2)
+library(dplyr)
+nosim<-1000
+dat <- data.frame(
+  x = c(apply(matrix(rexp(4*nosim,lambda),nosim, 4), 1, mean),
+        apply(matrix(rexp(40*nosim,lambda),nosim, 40), 1, mean), 
+        apply(matrix(rexp(400*nosim,lambda),nosim, 400), 1, mean)
+        ),
+  size = factor(rep(c(4, 40, 400), rep(nosim, 3))))
+g <- ggplot(dat, aes(x = x, fill = size)) + geom_density(alpha = .20,colour = "black") 
+g
+#g <- g + geom_vline(xintercept = 0, size = 1)
+#g+facet_grid(.~ size)
+
+```
+
+```{r caffo ggplot normalised}
+library(ggplot2)
+library(dplyr)
+nosim<-1000
+dat <- data.frame(
+  x = c(apply(matrix((rexp(4*nosim,lambda)-1/lambda)/((1/lambda) / sqrt(4)),nosim, 4), 1, mean),
+        apply(matrix((rexp(40*nosim,lambda)-1/lambda)/((1/lambda) / sqrt(40)),nosim, 40), 1, mean), 
+        apply(matrix((rexp(400*nosim,lambda)-1/lambda)/((1/lambda) / sqrt(400)),nosim, 400), 1, mean)
+        ),
+  size = factor(rep(c(4, 40, 400), rep(nosim, 3))))
+g <- ggplot(dat, aes(x = x, fill = size)) + geom_density(alpha = .20,colour = "black") 
+g <- g + geom_vline(xintercept = 0, size = 1)
+g+facet_grid(.~ size)
+
+```
+
 
 Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.
 
