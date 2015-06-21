@@ -4,6 +4,7 @@ author: "Michael Hunt"
 date: "Sunday, June 21, 2015"
 output: pdf_document
 ---
+The purpose of this analysis is to determine whether there is evidence at the 95% confidence level that dose type or dose strength make any difference to tooth length, in the ToothGrowh data set.
 
 ```{r load data and packages,echo=FALSE,warning=FALSE,message=FALSE,error=FALSE}
 library(ggplot2)
@@ -70,7 +71,7 @@ This shows that there is indeed a main effect of the way in which the dose was a
 The supp:dose table shows that at the 95% confidence level all combinations of dose strength and dose type lead to significantly different tooth lengths, except in 4 cases (those for which p>0.2)
 
 ##Validity checks for ANOVA analysis- post analysis
-A residual plot (residuals vs fitted values) and qq plot are shown in Appendix 4. The residual plot should shown no pattern, and looks fine, while the qq plot should be a straight line if the normality of distribution of differences criterion for the validity of the ANOVA analysis is to be satisfied. It isn't quite, perhaps a consequence of the small sample size.
+A residual plot (residuals vs fitted values) and qq plot are shown in Figure 4 in the appendix. The residual plot should show no pattern, and looks fine, while the qq plot should be a straight line if the normality of distribution of differences criterion for the validity of the ANOVA analysis is to be satisfied. It isn't quite, perhaps a consequence of the small sample size.
 
 ##Appendix
 
