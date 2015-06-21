@@ -1,0 +1,100 @@
+---
+title: "Analysis of variance within the R data set ToothGrowth"
+author: "Michael Hunt"
+date: "Sunday, June 21, 2015"
+output: pdf_document
+---
+
+```{r load data and packages,echo=FALSE,warning=FALSE,message=FALSE,error=FALSE}
+library(ggplot2)
+library(dplyr)
+data(ToothGrowth)
+```
+First, we inspect the data
+```{r Inspect}
+str(ToothGrowth)
+```
+The dose data is numerical, so we convert it to a factor with three levels, named "low", "medium" and "high".
+
+```{r dose to factor}
+ToothGrowth$dose = factor(ToothGrowth$dose,levels=c(0.5,1.0,2.0),
+                        labels=c("low","med","high"))
+```
+
+##Visualisations of the Data
+
+###Boxplots of the data by dose and supp
+
+See Figure 1 in the appendix. 
+This suggests that orange juice leads to longer teeth than vitamin C, at least at low dosages. The variances of the different sets are not the same, which may affect later analyses in which they are presumed to be the same. A later Bartlett test check will investigate this. However we note that the balance of the data, already checked, makes our analysis robust to differences in group variance.
+
+###Boxplots by dose type - main effect of dose type
+See Figure 2 in the appendix.. The means for different dose types appear to be similar - perhaps there is not much of a main effect due to dose type. The means for different dose strengths appear to be higher for higher doses. Dose strength does appear to have a main effect.
+
+### An interaction plot:
+A final exploratory visual analysis is an interaction plot. See Figure 3 in the appendix. The slope of the lines is similar, confirming the suggestion that dose strength does have a main effect, but giving no suggestion that dose type does so.
+
+##Validity checks for ANOVA analysis
+
+###Check balance of the data
+
+For a balanced data set, we need to assure ourselves that there are equal numbers of data with each combination of supp and dose. A table will show if this is so.
+
+```{r balance check}
+table(ToothGrowth$supp,ToothGrowth$dose)
+```
+The data set is balanced. This means that the later ANOVA analysis we will carry out wil be less sensitive to difference in variance between the sample groups.
+
+###Check group variances
+```{r group variances}
+with(ToothGrowth, tapply(len, list(supp,dose), var))
+```
+###Check for significant differences between the variances
+```{r check for significant difference between variances}
+bartlett.test(len ~ dose, data=ToothGrowth) # by dose
+bartlett.test(len ~ supp, data=ToothGrowth) # by supp
+```
+There is no significant difference between the group variances ($p>0.05$), so in fact we can regard variance as homogeneous across the samples in the subsequent ANOVA. Strictly, this is a requirement for the validity of the analysis, as we carry it out here.
+
+##Factorial ANOVA to determine whether the differences between the group means for tooth length are significant.
+```{r ANOVA}
+ aov.tooth = aov(len ~ supp * dose, data=ToothGrowth)
+ summary(aov.tooth)
+```
+The p values here are all less than $0.05$, in fact much less, which shows that at the 95% confidence level (at least) both dose and supp have a main effect, that is, there is a difference between at least two of the group means. There also appears to be an interaction between the two effects.
+
+To determine which group means differ, we can conduct a Tukey HSD (Honest Significant Difference) test.
+
+```{r Tukey HSD}
+TukeyHSD(aov.tooth)
+```
+This shows that there is indeed a main effect of the way in which the dose was administered, and also of dose strength.
+The supp:dose table shows that at the 95% confidence level all combinations of dose strength and dose type lead to significantly different tooth lengths, except in 4 cases (those for which p>0.2)
+
+##Appendix
+
+###Figure 1: Boxplots by dose and strength
+
+```{r boxplot by dose and strength,fig.height=5,fig.width=7}
+boxplot(len ~ supp * dose, data=ToothGrowth,
+        ylab="Tooth Length",main="Boxplots of Tooth Growth Data")
+```
+
+###Figure 2: Boxplots of dose and strength main effects.
+
+```{r boxplots by dose and strength separately,fig.height=4,fig.width=7.5}
+par(mfrow=c(1,2))
+boxplot(len ~ supp , data=ToothGrowth,
+        ylab="Tooth Length",main="Tooth Growth Data by dose type")
+boxplot(len ~ dose , data=ToothGrowth,
+        ylab="Tooth Length",main="Tooth Growth Data by dose strength")
+```
+
+###Figure 3: Interaction Plot
+
+```{r interaction plot,fig.height=4,fig.width=7}
+with(ToothGrowth,interaction.plot(x.factor=dose, trace.factor=supp,
+                 response=len,type="b",legend=T,fun=mean,
+                 pch=c(1,2),main="Interaction Plot",
+                 ylab="Tooth Length",xlab="Dose"))
+```
