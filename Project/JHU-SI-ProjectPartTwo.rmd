@@ -34,7 +34,7 @@ See Figure 2 in the appendix.. The means for different dose types appear to be s
 ### An interaction plot:
 A final exploratory visual analysis is an interaction plot. See Figure 3 in the appendix. The slope of the lines is similar, confirming the suggestion that dose strength does have a main effect, but giving no suggestion that dose type does so.
 
-##Validity checks for ANOVA analysis
+##Validity checks for ANOVA analysis- pre analysis
 
 ###Check balance of the data
 
@@ -43,18 +43,16 @@ For a balanced data set, we need to assure ourselves that there are equal number
 ```{r balance check}
 table(ToothGrowth$supp,ToothGrowth$dose)
 ```
-The data set is balanced. This means that the later ANOVA analysis we will carry out wil be less sensitive to difference in variance between the sample groups.
+The data set is balanced. This means that the later ANOVA analysis we will carry out will be less sensitive to any difference in variance between the sample groups.
 
-###Check group variances
+###Homogeneity of group variances
 ```{r group variances}
-with(ToothGrowth, tapply(len, list(supp,dose), var))
+with(ToothGrowth, tapply(len, list(supp,dose), var)) # find the variances
 ```
-###Check for significant differences between the variances
-```{r check for significant difference between variances}
-bartlett.test(len ~ dose, data=ToothGrowth) # by dose
-bartlett.test(len ~ supp, data=ToothGrowth) # by supp
+```{r check for significant difference between variances} # do a Bartlett test
+bartlett.test(len ~ interaction(supp,dose), data=ToothGrowth)
 ```
-There is no significant difference between the group variances ($p>0.05$), so in fact we can regard variance as homogeneous across the samples in the subsequent ANOVA. Strictly, this is a requirement for the validity of the analysis, as we carry it out here.
+According to ther Bartlett test, there is no significant difference between the group variances ($p>0.05$), so in fact we can regard variance as homogeneous across the samples in the subsequent ANOVA. Strictly, this is a requirement for the validity of the analysis, as we carry it out here.
 
 ##Factorial ANOVA to determine whether the differences between the group means for tooth length are significant.
 ```{r ANOVA}
@@ -70,6 +68,9 @@ TukeyHSD(aov.tooth)
 ```
 This shows that there is indeed a main effect of the way in which the dose was administered, and also of dose strength.
 The supp:dose table shows that at the 95% confidence level all combinations of dose strength and dose type lead to significantly different tooth lengths, except in 4 cases (those for which p>0.2)
+
+##Validity checks for ANOVA analysis- post analysis
+A residual plot (residuals vs fitted values) and qq plot are shown in Appendix 4. The residual plot should shown no pattern, and looks fine, while the qq plot should be a straight line if the normality of distribution of differences criterion for the validity of the ANOVA analysis is to be satisfied. It isn't quite, perhaps a consequence of the small sample size.
 
 ##Appendix
 
@@ -99,6 +100,20 @@ with(ToothGrowth,interaction.plot(x.factor=dose, trace.factor=supp,
                  ylab="Tooth Length",xlab="Dose"))
 ```
 
+###Figure 4: Further check of validity of ANOVA 
+
+```{r validity check, outlier excluded,echo=FALSE,fig.height= 4,fig.width=7}
+par(mfrow=c(1,2))
+#plot(fit)
+plot(aov.tooth$fitted.values,aov.tooth$residuals,xlab="fitted values",ylab="residuals",main="Residual Plot")
+abline(0,0,col="red")
+qqnorm(resid(aov.tooth))
+```
+
 ##Source Code
 The source code for this document can be found in
 https://github.com/mbh038/JHU_SI/tree/master/Project
+
+
+
+```
