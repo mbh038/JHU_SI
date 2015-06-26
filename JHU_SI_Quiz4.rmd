@@ -1,0 +1,109 @@
+---
+title: "JHU_SI_Quiz4"
+author: "mbh"
+date: "Friday, June 26, 2015"
+output: html_document
+---
+
+##Q1
+
+A pharmaceutical company is interested in testing a potential blood pressure lowering medication. 
+Their first examination considers only subjects that received the medication at baseline then two weeks later. 
+The data are as follows (SBP in mmHg)
+Subject        Baseline	Week 2
+1	140	132
+2	138	135
+3	150	151
+4	148	146
+5	135	130
+
+Consider testing the hypothesis that there was a mean reduction in blood pressure?
+Give the P-value for the associated two sided T test.
+
+(Hint, consider that the observations are paired.)
+
+```{r q1}
+bp<-data.frame("Subject"=c(1:5),"Baseline"=c(140,138,150,148,135),"Week2"=c(132,135,151,146,130))
+bp
+t.test(bp$Baseline,bp$Week2,paired=TRUE,upper.tail=FALSE)
+t.test(bp$Baseline,bp$Week2,paired=TRUE)
+t.test(bp$Baseline,bp$Week2,paired=TRUE,lower.tail=TRUE)
+```
+
+##Q2
+
+A sample of 9 men yielded a sample average brain volume of 1,100cc and a standard deviation of 30cc.
+What is the complete set of values of ??0 that a test of H0:??=??0 would fail to reject the null 
+hypothesis in a two sided 5% Students t-test?
+
+```{r q2}
+1100+c(-1,1)*qt(0.975,8)*30/sqrt(9)
+```
+
+##Q3
+
+Researchers conducted a blind taste test of Coke versus Pepsi. Each of four people was asked which of 
+two blinded drinks given in random order that they preferred. The data was such that 3 of the 4 people
+chose Coke. Assuming that this sample is representative, report a P-value for a test of the hypothesis
+that Coke is preferred to Pepsi using a one sided exact test.
+
+```{r q3}
+pbinom(2, size = 4, prob = 0.5, lower.tail = FALSE)
+```
+
+##Q4
+
+Infection rates at a hospital above 1 infection per 100 person days at risk are believed to be too high
+and are used as a benchmark. A hospital that had previously been above the benchmark recently had
+10 infections over the last 1,787 person days at risk. About what is the one sided P-value for the
+relevant test of whether the hospital is *below* the standard?
+
+```{r q4}
+ ppois(10, 17.87, lower.tail = TRUE)
+```
+
+##Q5
+
+```{r q5}
+p<-0.01
+p<-1-p/2
+sp <- sqrt((8 * 1.5^2 + 8 * 1.8^2) / (9 + 9 - 2))
+1 - (-3) + c(-1, 1) * qt(p, 16) * sp * (1 / 8 + 1 / 8)^.5
+```
+##Q6
+
+Brain volumes for 9 men yielded a 90% confidence interval of 1,077 cc to 1,123 cc. 
+Would you reject in a two sided 5% hypothesis test of H0:??=1,078?
+
+```{r q6}
+s<-0.5*(1123-1077)*sqrt(9)/qt(0.95,8)
+range<-1100+c(-1,1)*qt(0.975,8)*s/3
+range
+```
+
+##Q7
+
+Researchers would like to conduct a study of 100 healthy adults to detect a four year mean brain volume
+loss of .01 mm3. Assume that the standard deviation of four year volume loss in this population is .04 mm3.
+About what would be the power of the study for a 5% one sided test versus a null hypothesis of no volume loss?
+
+```{r q7}
+ts<-qt(0.95,df=99)
+se<-0.04/sqrt(100)
+diff<-0.01/se
+pt(-(ts-diff),99,lower.tail=TRUE)
+```
+
+##Q8
+
+Researchers would like to conduct a study of n healthy adults to detect a four year mean brain volume loss of .01 mm3.
+Assume that the standard deviation of four year volume loss in this population is .04 mm3. About what would be the value
+of n needded for 90% power of type one error rate of 5% one sided test versus a null hypothesis of no volume loss?
+
+```{r q8}
+n<-c(180,160,140,120)
+ts<-qt(0.95,df=n-1)
+se<-0.04/sqrt(n)
+diff<-0.01/se
+pt(-(ts-diff),n-1,lower.tail=TRUE)
+```
