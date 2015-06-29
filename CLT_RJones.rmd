@@ -1,0 +1,526 @@
+---
+title: "The CLT and common distibutions"
+author: "mbh038"
+date: "Monday, June 29, 2015"
+output: html_document
+---
+
+CLT & Cochrans Theorem with Different PDFs
+Ray Jones
+
+29th March, 2015
+
+This short paper presents the results of some simulations done to investigate the applicability of Cochran's Theorem (CT) to a number of different probability distribution functions (pdfs). As is widely known, the Central Limit Theorem (CLT) states that, whatever the parent pdf, the distribution of the means of random samples from the parent pdf will tend to a normal distribution, provided the parent pdf is finite. What is less widely known is that CT states that the distribution of the variances of random samples of these normally distributed means will tend to a ??2 distribution with degrees of freedom = sample size of means - 1.
+
+The pdfs initially selected for analysis were the exponential, uniform and normal pdfs as implemented in the R functions rexp(), runif() & rnorm(). This was later extended to cover the additional pdfs listed below. This work was carried out as an extension to the first part of the Data Science Specialization: Statistical Inference course project. The initial task of setting up the environment was carried out using the following code chunk.
+
+## Make this reproducible by setting the random seed & other parameters
+```{r}
+set.seed(1234)
+pdf_var         <- 25
+iterations      <- 10000
+samplesize      <- 1000
+mean_set_size   <- 5
+xbreaks         <- 40
+scaling         <- (mean_set_size-1)*(samplesize)/pdf_var
+message ("Various parent distributions with variance = ", pdf_var,", sample size = ", 
+                                                         samplesize, " and iterations = ", iterations)
+```
+## Various parent distributions with variance = 25, sample size = 1000 and iterations = 10000
+
+```{r}
+message ("Variances of means sample size = ", mean_set_size,", implies chisq dof = ", mean_set_size-1)
+```
+## Variances of means sample size = 5, implies chisq dof = 4
+The next chunk sets up the function used to calculate and plot the distributions of the means of the random samples and the distributions of the variances of those means derived from a bootstrap procedure.
+
+## Set-up required function
+```{r}
+Distributions    <- function(mns, mean, sd, scaling, mean_set_size, iterations, xbreaks) {
+
+    ## Plot means distribution 
+    hist(mns, breaks = xbreaks, col = "lightblue", prob = TRUE,
+        main = "Means of random sample sets", xlab = "Value",
+        ylab = "Sample mean probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+    curve(dnorm(x, mean = mean, sd = sd), add = TRUE, yaxt = "n", lwd=2)
+
+    ## Calculate and plot variances of means distribution histogram
+    vars        <- NULL
+    for (i in 1:(iterations)){vars    <- c(vars, var(sample(mns, mean_set_size, replace = TRUE)))}
+    hist(vars, breaks = xbreaks, col = "lightblue", prob = TRUE,
+        main = "Variances of random means of random sample sets", xlab = "Value",
+        ylab = "Sample variance probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+    curve(scaling*dchisq(x*scaling, df = (mean_set_size-1)), add = TRUE, yaxt = "n", lwd=2)
+
+    ## Finally do a Q-Q plot for the variances against a chi-sqr distribution
+    qqplot(vars, qchisq(ppoints(vars), df = mean_set_size-1), pch=".", main = "Chisq against variance QQ plot", 
+                    xlab = "Variance", ylab = "Chisq", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+    return(NULL)
+}
+```
+##Exponential pdf
+The first pdf investigated was the exponential. The following code chunk was used to generate sets of random samples from an exponential distribution and evaluate the means of each of these sets and then the variances of sets of the means taken from the population of means via a bootstrap procedure. These results were then used to generate (i) a probability histogram showing an example of 1 set of random samples from the exponential pdf (with parent (exponential) pdf shown as a black line), (ii) the distribution of means from all sets of random samples (with normal pdf shown as a black line), (iii) the distribution of variances of sets of means bootstrapped from the population generated for (ii) (with ??2 pdf shown as a black line) and (iv) a QQ plot of the quantiles from a ??2 distribution against the quantiles from the variance data.
+
+## This code block has been redacted since it contains the solution to one of the problems for the SI Project.
+The first histogram above shows an example random sample from the exponential distribution. The second histogram shows the compliance of the distribution of means with the CLT and the third histogram shows the compliance of the variance of the randomly sampled means with the CT. The fourth figure is a QQ plot showing the distribution of the quantiles from the ??2 distribution against the quantiles from the variance data. The linearity of the plot confirms the ??2 nature of the distribution of the variances.
+
+The remainder of this report presents similar results to those above for examples of the following distributions:
+
+Uniform
+Normal
+Beta
+Binomial
+Cauchy
+Gamma
+Geometric
+Hypergeometric
+Logistic
+Log Normal
+Poisson's
+Snedecor's F
+Student's t
+Weibull
+Wilcoxon Rank Sum Statistic
+Wilcoxon Signed Rank Statistic
+Uniform pdf
+
+## Uniform pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+meanUnif   <- sqrt(pdf_var)
+minUnif    <- meanUnif - (sqrt(pdf_var*12)/2)
+maxUnif    <- meanUnif + (sqrt(pdf_var*12)/2)
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- runif(samplesize, minUnif, maxUnif)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Uniform", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        abline(h = (1/(maxUnif-minUnif)), lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanUnif, sd = sqrt(pdf_var/samplesize), scaling, 
+                                                                    mean_set_size, iterations, xbreaks)
+
+
+Normal pdf
+## Normal pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+meanNorm   <- sqrt(pdf_var)
+sdNorm     <- sqrt(pdf_var)
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rnorm(samplesize, meanNorm, sdNorm)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Normal", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dnorm(x, mean = meanNorm, sd = sdNorm), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, meanNorm, sd = (sdNorm/sqrt(samplesize)), scaling, 
+                                                                    mean_set_size, iterations, xbreaks)
+
+
+Beta pdf
+## Beta pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+shape1      <- 0.5
+shape2      <- 3.0
+meanBeta   <- shape1/(shape1+shape2)
+varBeta    <- shape1*shape2/((shape1+shape2)^2 * (shape1+shape2+1))
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rbeta(samplesize, shape1, shape2)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Beta", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dbeta(x, shape1, shape2), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean=meanBeta, sd = sqrt(varBeta/samplesize), scaling*pdf_var/varBeta, 
+                                                    mean_set_size, iterations, xbreaks)
+
+
+Binomial pdf
+## Binomial pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+p           <- 0.5
+n           <- 100
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rbinom(samplesize, n, p)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Binomial", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dbinom(x, n, p), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean=n*p, sd = sqrt(n*p*(1-p)/samplesize), scaling, 
+                                                    mean_set_size, iterations, xbreaks)
+
+
+Cauchy pdf
+The Cauchy (Lorentz) (and, possibly, Student's t distribution) requires special additional processing to impose a cutoff in range, otherwise the distribution is not be finite and the CLT and CT strictly do not apply. This special processing (which removes the outliers) also permits plotting of the various derived values in a way which allows the CLT and CT nature of the non-outlier density to be seen.
+
+## Cauchy pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+location    <- 0
+scale       <- 5
+cutoff      <- 20
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rcauchy(samplesize, location, scale)
+    ## Special processing step = outlier removal
+    sample[abs((sample-location)/scale)>cutoff] <- location
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Cauchy (Lorentz)", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dcauchy(x, location, scale), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean=mean(mns), sd = sd(mns), scaling*pdf_var/var(sample), 
+                                                    mean_set_size, iterations, xbreaks)
+
+
+Gamma pdf
+## Gamma pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+shape       <- 1
+scale       <- 5
+meanGam     <- shape*scale
+varGam      <- shape*scale^2
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rgamma(samplesize, shape, 1/scale)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Gamma", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dgamma(x, shape, 1/scale), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanGam, sd = sqrt(varGam/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varGam), mean_set_size, iterations, xbreaks)
+
+
+Geometric pdf
+## Geometric pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+p           <- (-1+sqrt(1+(4*pdf_var)))/(2*pdf_var)
+meanGeo     <- (1-p)/p
+varGeo      <- (1-p)/p^2
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rgeom(samplesize, p)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Geometric", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dgeom(x, p), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanGeo, sd = sqrt(varGeo/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varGeo), mean_set_size, iterations, xbreaks)
+
+
+Hypergeometric pdf
+## Hypergeometric pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+m           <- 300
+n           <- 300
+k           <- 127
+meanHyp     <- k*m/(n+m)
+varHyp      <- meanHyp*(n/(m+n))*((m+n-k)/(m+n-1))
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rhyper(samplesize, m, n, k)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Hypergeometric", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dhyper(x, m, n, k), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanHyp, sd = sqrt(varHyp/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varHyp), mean_set_size, iterations, xbreaks)
+
+
+Logistic pdf
+## Logistic pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+meanLog     <- 5
+sdLog       <- sqrt(3*pdf_var/pi^2)
+varLog      <- (sdLog^2*pi^2)/3
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rlogis(samplesize, meanLog, sdLog)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Logistic", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dlogis(x, meanLog, sdLog), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanLog, sd = sqrt(varLog/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varLog), mean_set_size, iterations, xbreaks)
+
+
+Log Normal pdf
+## Log Normal pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+muLn        <- 1.5
+sLn         <- 0.7375
+meanLn      <- exp(muLn+((sLn^2)/2))
+varLn       <- (exp(sLn^2)-1)*exp((2*muLn)+sLn^2)
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rlnorm(samplesize, muLn, sLn)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Log Normal", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dlnorm(x, muLn, sLn), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanLn, sd = sqrt(varLn/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varLn), mean_set_size, iterations, xbreaks)
+
+
+Poissons pdf
+## Poisson's pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+lambda      <- pdf_var
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rpois(samplesize, lambda)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Poisson's", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        suppressWarnings(curve(dpois(x, lambda), add = TRUE, yaxt = "n", lwd=2))
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = lambda, sd = sqrt(lambda/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(lambda), mean_set_size, iterations, xbreaks)
+
+
+Snedecor's F pdf
+## Snedecor's F pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+d1          <- 1
+d2          <- 10
+meanF       <- d2/(d2-2)
+varF        <- (2*d2^2)*(d1+d2-2)/((d1*(d2-2)^2*(d2-4)))
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rf(samplesize, d1, d2)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Snedecor's F", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(df(x, d1, d2), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanF, sd = sqrt(varF/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varF), mean_set_size, iterations, xbreaks)
+
+
+Student's t pdf
+The Student's t distribution requires special additional processing to impose a cutoff in range, otherwise the distribution may not be finite and the CLT and CT strictly do not apply (dependent on if the nu value exceeds 2). This special processing (which removes the outliers) also permits plotting of the various derived values in a way which allows the CLT and CT nature of the non-outlier density to be seen.
+
+## Student's t pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+nu          <- (2*pdf_var)/(pdf_var-1)
+cutoff      <- 5
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rt(samplesize, nu)
+    ## Special processing step = outlier removal
+    sample[abs(sample/sqrt(pdf_var))>cutoff] <- runif(1,-cutoff*sqrt(pdf_var),cutoff*sqrt(pdf_var))
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue", breaks = xbreaks, xlim = c(-pdf_var/2, pdf_var/2),
+            main = "Random sample from Student's t", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dt(x, nu), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean=mean(mns), sd = sd(mns), scaling*pdf_var/var(sample), 
+                                                                mean_set_size, iterations, xbreaks)
+
+
+Weibull pdf
+## Weibull pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+k           <- 1
+lambda      <- sqrt(pdf_var)
+meanWei     <- lambda*gamma(1+(1/k))
+varWei      <- lambda^2 * (gamma(1+(2/k))-(gamma(1+(1/k)))^2)
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rweibull(samplesize, k, lambda)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Weibull", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dweibull(x, k, lambda), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = meanWei, sd = sqrt(varWei/samplesize), 
+                    (mean_set_size-1)*(samplesize)/(varWei), mean_set_size, iterations, xbreaks)
+
+
+Wilcoxon rank sum pdf
+## Wilcoxon rank sum pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+m           <- 10
+n           <- 15
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rwilcox(samplesize, m, n)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Wilcoxon rank sum", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dwilcox(x, m, n), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = mean(mns), sd = sqrt(var(mns)), 
+                    (mean_set_size-1)/(var(mns)), mean_set_size, iterations, xbreaks)
+
+
+Wilcoxon signed rank pdf
+## Wilcoxon signed rank pdf
+par(mfrow = c(1, 4))
+
+## Means of sample sets
+n           <- 15
+mns         <- NULL
+sample      <- NULL
+for (i in 1 : iterations) {
+    sample  <- rsignrank(samplesize, n)
+    mns     <- c(mns, mean(sample))
+    if (i==1) {
+        ## Parent distribution histogram
+        hist(sample, col = "lightblue",
+            main = "Random sample from Wilcoxon signed rank", xlab = "Value", prob = TRUE,
+            ylab = "Sample probability", cex.axis = 0.5, cex.lab = 0.6, cex.main = 0.7)
+        curve(dsignrank(x, n), add = TRUE, yaxt = "n", lwd=2)
+    }
+}
+
+## Plot means distribution & variances of means distribution histograms
+answer      <-   Distributions(mns, mean = mean(mns), sd = sqrt(var(mns)), 
+                    (mean_set_size-1)/(var(mns)), mean_set_size, iterations, xbreaks)
+
+
+Conclusion
+This short study has shown excellent compliance with both the CLT and CT for all distributions examined (albeit with the noted caveats for the Cauchy (Lorentz) and Student's t distributions).
